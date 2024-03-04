@@ -1,7 +1,10 @@
-import scrapy
 import logging
+from datetime import datetime
+from urllib.parse import parse_qs, urlparse
+
+import scrapy
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, parse_qs
+
 
 def get_text(s):
     soup = BeautifulSoup(s.get(), "html.parser")
@@ -23,6 +26,7 @@ class ZonapropSpider(scrapy.Spider):
             logging.info("No next page found")
 
     def parse_listing(self, response):
+        crawled_at = datetime.now().astimezone().replace(microsecond=0).isoformat()
         price = response.css(".price-value span span")
         map_url = response.css("#static-map:not(.static-map-no-location)")
         if map_url:
@@ -37,6 +41,7 @@ class ZonapropSpider(scrapy.Spider):
             "address": address,
             "lng": lng,
             "lat": lat,
+            "crawled_at": crawled_at,
         }
 
 
