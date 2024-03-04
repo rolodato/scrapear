@@ -30,8 +30,8 @@ class ArgenpropSpider(scrapy.Spider):
         address = response.css(".location-container")
         if address:
             address = ", ".join(get_text(address).split("\n"))
-            lng = response.css("[data-longitude]::attr(data-longitude)").get()
-            lat = response.css("[data-latitude]::attr(data-latitude)").get()
+            lng = response.css("[data-longitude]::attr(data-longitude)").get().replace(",", ".")
+            lat = response.css("[data-latitude]::attr(data-latitude)").get().replace(",", ".")
         else:
             lng = None
             lat = None

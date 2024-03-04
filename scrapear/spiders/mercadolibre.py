@@ -48,7 +48,7 @@ class MercadoLibreSpider(scrapy.Spider):
     def parse_html_data(self, response):
         crawled_at = datetime.now().astimezone().replace(microsecond=0).isoformat()
         map_url = urlparse(response.css("#ui-vip-location__map img::attr(src)").get())
-        [lng, lat] = parse_qs(map_url.query)["center"][0].split(",")
+        [lat, lng] = parse_qs(map_url.query)["center"][0].split(",")
         yield {
             "url": response.meta.get("url"),
             "price": response.meta.get("price"),

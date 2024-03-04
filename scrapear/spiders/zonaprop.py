@@ -31,7 +31,8 @@ class ZonapropSpider(scrapy.Spider):
         map_url = response.css("#static-map:not(.static-map-no-location)")
         if map_url:
             address = get_text(response.css("#map-section h4"))
-            [lng, lat] = parse_qs(urlparse(map_url.attrib["src"]).query)["center"][0].split(",")
+            [lat, lng] = parse_qs(urlparse(map_url.attrib["src"]).query)["center"][0].split(",")
+
         else:
             address = None
             [lng, lat] = [None, None]
