@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs
 
 import scrapy
 from bs4 import BeautifulSoup
@@ -24,7 +24,7 @@ class MercadoLibreSpider(scrapy.Spider):
             if match:
                 item_id = "".join(match.group().split("-"))
                 api_url = urljoin("https://api.mercadolibre.com/items/", item_id)
-                yield response.follow(api_url, callback=self.parse_listing, cb_kwargs=dict(url=link))
+                yield response.follow(api_url, callback=self.parse_api_data, cb_kwargs=dict(url=link))
             else:
                 logging.error("Could not extract item ID from URL %s", link)
 
@@ -35,28 +35,26 @@ class MercadoLibreSpider(scrapy.Spider):
         else:
             logging.info("No next page found")
 
-    def parse_listing(self, response, url):
-        crawled_at = datetime.now().astimezone().replace(microsecond=0).isoformat()
+    def parse_api_data(self, response, url):
         data = json.loads(response.text)
-        # item_id = response.request.url
-        # address = response.css(".location-container")
-        # if address:
-        #     address = get_text(address)
-        #     lng = response.css("[data-longitude]::attr(data-longitude)").get()
-        #     lat = response.css("[data-latitude]::attr(data-latitude)").get()
-        # else:
-        #     lng = None
-        #     lat = None
-
-        yield {
+        api_data = {
             "url": url,
             "price": "{} {}".format(data["currency_id"], data["price"]),
             "address": "{}, {}".format(data["location"]["address_line"], data["location"]["neighborhood"]["name"]),
-            # coordinates not returned in API :(
-            # "lng": lng,
-            # "lat": lat,
             "api_url": response.request.url,
+        }
+        yield response.follow(data["permalink"], meta=api_data, callback=self.parse_html_data)
+
+    def parse_html_data(self, response):
+        crawled_at = datetime.now().astimezone().replace(microsecond=0).isoformat()
+        map_url = urlparse(response.css("#ui-vip-location__map img::attr(src)").get())
+        [lng, lat] = parse_qs(map_url.query)["center"][0].split(",")
+        yield {
+            "url": response.meta.get("url"),
+            "price": response.meta.get("price"),
+            "address": response.meta.get("address"),
+            "lng": lng,
+            "lat": lat,
+            "api_url": response.meta.get("api_url"),
             "crawled_at": crawled_at,
         }
-
-
