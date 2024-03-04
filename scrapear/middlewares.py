@@ -3,6 +3,8 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+from urllib.parse import urlparse
+
 import cloudscraper
 from scrapy import signals
 from scrapy.http import TextResponse
@@ -80,13 +82,23 @@ class ScrapearDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        response = self.scraper.perform_request(
-            method=request.method,
-            url=request.url,
-            data=request.body,
-            cookies=request.cookies,
-        )
-        return TextResponse(request.url, body=response.text, encoding='utf-8')
+        if spider.name in ["zonaprop", "mercadolibre"]:
+            if urlparse(request.url).netloc == "api.mercadolibre.com":
+                headers = {
+                    "Accept": "application/json"
+                }
+            else:
+                headers = None
+            response = self.scraper.perform_request(
+                method=request.method,
+                url=request.url,
+                data=request.body,
+                cookies=request.cookies,
+                headers=headers,
+            )
+            return TextResponse(request.url, body=response.text, encoding='utf-8')
+        else:
+            return None
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
