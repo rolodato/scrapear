@@ -3,13 +3,13 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import cloudscraper
 from scrapy import signals
-
-# useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
+from scrapy.http import TextResponse
 
 
 class ScrapearSpiderMiddleware:
+
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -57,6 +57,8 @@ class ScrapearSpiderMiddleware:
 
 
 class ScrapearDownloaderMiddleware:
+    scraper = cloudscraper.create_scraper()
+
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
@@ -78,7 +80,13 @@ class ScrapearDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+        response = self.scraper.perform_request(
+            method=request.method,
+            url=request.url,
+            data=request.body,
+            cookies=request.cookies,
+        )
+        return TextResponse(request.url, body=response.text, encoding='utf-8')
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
