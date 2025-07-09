@@ -95,6 +95,7 @@ class ScrapearDownloaderMiddleware:
                 data=request.body,
                 cookies=request.cookies,
                 headers=headers,
+                meta={"playwright": True}
             )
             return TextResponse(request.url, body=response.text, encoding='utf-8')
         else:

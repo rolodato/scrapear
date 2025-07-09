@@ -14,13 +14,12 @@ from scrapy.exceptions import DropItem
 import logging
 
 load_dotenv()
-gmaps = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
-
-san_martin = "Estación Hurlingham del FFCC San Martín"
-urquiza = "Rubén Darío, Hurlingham"
-max_travel_time = 15 * 60
 
 class TravelTimePipeline:
+    gmaps = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
+    san_martin = "Estación Hurlingham del FFCC San Martín"
+    urquiza = "Rubén Darío, Hurlingham"
+    max_travel_time = 15 * 60
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
         if not adapter["lat"] or not adapter["lng"]:
